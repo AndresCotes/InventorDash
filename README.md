@@ -110,6 +110,56 @@ dashma/
 
 ---
 
+## Screenshots
+
+### Dashboard
+
+![Dashboard](screenshots/dash_preview.png)
+
+### Admin Login
+
+![Admin Login](screenshots/admin_login.png)
+
+### Search
+
+![Search](screenshots/search.png)
+
+### Admin Panel
+
+**Appearance** - Customize colors, layout, typography, animations, and background images.
+
+![Appearance](screenshots/admin_appearance.png)
+
+**Categories** - Organize your links into drag-and-drop sortable categories.
+
+![Categories](screenshots/admin_categories.png)
+
+**Links** - Manage links within each category with tags, favicons, and sorting.
+
+![Links](screenshots/admin_links.png)
+
+**Widgets** - Add and configure dashboard widgets like server monitors.
+
+![Widgets](screenshots/admin_widgets.png)
+
+**Requests** - Review and approve user-submitted category and link requests.
+
+![Requests](screenshots/admin_requests.png)
+
+**Authentication** - Configure admin and site auth including Microsoft Entra ID SSO.
+
+![Authentication](screenshots/admin_authentication.png)
+
+**Backup** - Export and import your full configuration as JSON.
+
+![Backup](screenshots/admin_backup.png)
+
+**Account** - Manage admin credentials.
+
+![Account](screenshots/admin_account.png)
+
+---
+
 ## 📄 License
 
 MIT License - see [LICENSE](LICENSE) for details.
