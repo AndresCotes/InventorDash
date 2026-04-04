@@ -52,6 +52,7 @@ const defaultConfig = {
   },
   users: [], // Regular users for main site auth: { id, username, passwordHash, createdAt }
   categories: [],
+  tabs: [],
   links: [],
   widgets: [], // { id, type, enabled, position, order, title, config }
   requests: {
@@ -180,6 +181,8 @@ function addWidget(widget) {
     enabled: widget.enabled !== false,
     position: position,
     order: widgetsInPosition.length,
+    width: widget.width || 'full',
+    alignment: widget.alignment || 'left',
     title: widget.title || null,
     config: widget.config || {}
   };
@@ -282,6 +285,92 @@ function deleteCategory(id) {
   const config = getConfig();
   config.categories = config.categories.filter(c => c.id !== id);
   config.links = config.links.filter(l => l.categoryId !== id);
+  if (Array.isArray(config.tabs)) {
+    config.tabs = config.tabs.map(tab => ({
+      ...tab,
+      categoryIds: (tab.categoryIds || []).filter(catId => catId !== id)
+    }));
+  }
+  saveConfig();
+}
+
+function getTabs() {
+  const config = getConfig();
+  if (!config.tabs) {
+    config.tabs = [];
+  }
+
+  if (config.tabs.length === 0) {
+    config.tabs = [{
+      id: uuidv4(),
+      name: 'Default',
+      categoryIds: (config.categories || []).map(category => category.id),
+      order: 0
+    }];
+    saveConfig();
+  }
+
+  return config.tabs;
+}
+
+function addTab(tab) {
+  const config = getConfig();
+  if (!config.tabs) config.tabs = [];
+  const newTab = {
+    id: uuidv4(),
+    name: tab.name,
+    categoryIds: Array.isArray(tab.categoryIds) ? tab.categoryIds : [],
+    order: config.tabs.length
+  };
+  config.tabs.push(newTab);
+  saveConfig();
+  return newTab;
+}
+
+function updateTab(id, updates) {
+  const config = getConfig();
+  const index = (config.tabs || []).findIndex(t => t.id === id);
+  if (index === -1) throw new Error('Tab not found');
+  config.tabs[index] = {
+    ...config.tabs[index],
+    ...updates,
+    categoryIds: Array.isArray(updates.categoryIds) ? updates.categoryIds : config.tabs[index].categoryIds
+  };
+  saveConfig();
+  return config.tabs[index];
+}
+
+function deleteTab(id) {
+  const config = getConfig();
+  config.tabs = (config.tabs || []).filter(t => t.id !== id);
+
+  if (config.tabs.length === 0) {
+    config.tabs = [{
+      id: uuidv4(),
+      name: 'Default',
+      categoryIds: (config.categories || []).map(category => category.id),
+      order: 0
+    }];
+  }
+
+  saveConfig();
+}
+
+function reorderTabs(orderedIds) {
+  const config = getConfig();
+  const reorderedTabs = orderedIds.map((id, index) => {
+    const tab = (config.tabs || []).find(t => t.id === id);
+    if (tab) tab.order = index;
+    return tab;
+  }).filter(Boolean);
+
+  config.tabs = reorderedTabs.length > 0 ? reorderedTabs : [{
+    id: uuidv4(),
+    name: 'Default',
+    categoryIds: (config.categories || []).map(category => category.id),
+    order: 0
+  }];
+
   saveConfig();
 }
 
@@ -464,6 +553,7 @@ function exportConfig() {
   return {
     settings: appearanceSettings,
     categories: config.categories,
+    tabs: config.tabs,
     links: config.links,
     admin: config.admin
   };
@@ -485,6 +575,7 @@ function importConfig(newConfig) {
     ...currentConfig,
     settings: mergedSettings,
     categories: newConfig.categories || currentConfig.categories,
+    tabs: newConfig.tabs || currentConfig.tabs,
     links: newConfig.links || currentConfig.links,
     admin: newConfig.admin || currentConfig.admin
     // users and requests are preserved from current config
@@ -650,10 +741,15 @@ module.exports = {
   updateSettings,
   getPublicSettings,
   getCategories,
+  getTabs,
   addCategory,
+  addTab,
   updateCategory,
+  updateTab,
   deleteCategory,
+  deleteTab,
   reorderCategories,
+  reorderTabs,
   getLinks,
   addLink,
   updateLink,

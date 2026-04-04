@@ -5,6 +5,7 @@ const http = require('http');
 const config = require('./config');
 const auth = require('./auth');
 const pingService = require('./ping-service');
+const mqttService = require('./mqtt-service');
 
 // Helper to fetch a URL and check if it returns a valid image
 function fetchImage(url, timeout = 3000) {
@@ -84,6 +85,7 @@ async function registerRoutes(fastify) {
     return {
       settings: config.getPublicSettings(),
       categories: config.getCategories(),
+      tabs: config.getTabs(),
       links: config.getLinks(),
       widgets: config.getWidgets().filter(w => w.enabled)
     };
@@ -92,6 +94,10 @@ async function registerRoutes(fastify) {
   // Public API - get monitoring status for all hosts
   fastify.get('/api/public/monitoring/status', async (request, reply) => {
     return pingService.getAllStatuses();
+  });
+
+  fastify.get('/api/public/mqtt/status', async () => {
+    return mqttService.getAllStates();
   });
 
   // Favicon proxy - fetch favicon for a URL with fallback chain and fuzzy app name matching
@@ -438,6 +444,7 @@ async function registerRoutes(fastify) {
       return {
         settings: cfg.settings,
         categories: cfg.categories,
+        tabs: cfg.tabs || [],
         links: cfg.links,
         widgets: cfg.widgets || [],
         admin: {
@@ -473,6 +480,25 @@ async function registerRoutes(fastify) {
 
     fastify.put('/api/admin/categories/reorder', async (request) => {
       config.reorderCategories(request.body.ids);
+      return { success: true };
+    });
+
+    // Tabs CRUD
+    fastify.post('/api/admin/tabs', async (request) => {
+      return config.addTab(request.body);
+    });
+
+    fastify.put('/api/admin/tabs/:id', async (request) => {
+      return config.updateTab(request.params.id, request.body);
+    });
+
+    fastify.delete('/api/admin/tabs/:id', async (request) => {
+      config.deleteTab(request.params.id);
+      return { success: true };
+    });
+
+    fastify.put('/api/admin/tabs/reorder', async (request) => {
+      config.reorderTabs(request.body.ids);
       return { success: true };
     });
 
@@ -686,6 +712,7 @@ async function registerRoutes(fastify) {
       try {
         const widget = config.addWidget(request.body);
         pingService.refreshHosts();
+        mqttService.refreshWidgets();
         return widget;
       } catch (err) {
         return reply.code(400).send({ error: err.message });
@@ -696,6 +723,7 @@ async function registerRoutes(fastify) {
       try {
         const widget = config.updateWidget(request.params.id, request.body);
         pingService.refreshHosts();
+        mqttService.refreshWidgets();
         return widget;
       } catch (err) {
         return reply.code(400).send({ error: err.message });
@@ -705,6 +733,7 @@ async function registerRoutes(fastify) {
     fastify.delete('/api/admin/widgets/:id', async (request) => {
       config.deleteWidget(request.params.id);
       pingService.refreshHosts();
+      mqttService.refreshWidgets();
       return { success: true };
     });
 

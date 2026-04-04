@@ -5,6 +5,7 @@ const { registerRoutes } = require('./routes');
 const auth = require('./auth');
 const FileSessionStore = require('./session-store');
 const pingService = require('./ping-service');
+const mqttService = require('./mqtt-service');
 
 // Register plugins
 fastify.register(require('@fastify/formbody'));
@@ -34,6 +35,13 @@ fastify.register(require('@fastify/static'), {
   index: false // Don't serve index.html automatically
 });
 
+fastify.register(require('@fastify/static'), {
+  root: path.join(__dirname, '..', '..', 'node_modules', 'mqtt', 'dist'),
+  prefix: '/js/vendor/',
+  decorateReply: false,
+  index: false
+});
+
 // Register routes
 fastify.register(registerRoutes);
 
@@ -47,6 +55,7 @@ config.loadConfig();
 
 // Start ping service for monitoring
 pingService.startService(() => config.getConfig());
+mqttService.startService(() => config.getConfig());
 
 // Start server
 const start = async () => {
@@ -65,6 +74,7 @@ const start = async () => {
 const shutdown = async () => {
   console.log('Shutting down...');
   pingService.stopService();
+  mqttService.stopService();
   await fastify.close();
   process.exit(0);
 };
