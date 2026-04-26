@@ -6,6 +6,12 @@ Previous project reference: this project was formerly known as **Dashma**. Origi
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
+## 🖼️ Preview
+
+![Dashboard](screenshots/dash_preview.png)
+![Search](screenshots/search.png)
+![Admin Login](screenshots/admin_login.png)
+
 ---
 
 ## ✨ Features
