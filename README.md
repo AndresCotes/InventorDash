@@ -48,14 +48,7 @@ Everything is configured through a web GUI at `/admin` - no config files to edit
 
 ## 🚀 Quick Start
 
-### Using Docker (Recommended)
-
-```bash
-export SESSION_SECRET="replace-with-a-random-secret-of-32+chars"
-docker-compose up -d --build
-```
-
-### Run Prebuilt Image (GHCR)
+### Fast Install (GHCR, 1 command)
 
 ```bash
 docker run -d \
@@ -72,10 +65,58 @@ docker run -d \
   ghcr.io/andrescotes/inventordash:latest
 ```
 
-### Using Docker with Nginx
+### Docker Compose (Recommended for servers)
+
+Create `docker-compose.yml`:
 
 ```bash
-docker-compose -f docker-compose.nginx.yml up -d --build
+cat > docker-compose.yml <<'EOF'
+services:
+  inventordash:
+    image: ghcr.io/andrescotes/inventordash:latest
+    container_name: inventordash
+    restart: unless-stopped
+    cap_add:
+      - NET_RAW
+    ports:
+      - "3685:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOST=0.0.0.0
+      - SESSION_SECRET=${SESSION_SECRET}
+      # Optional:
+      # - TRUST_PROXY=false
+      # - PUBLIC_BASE_URL=https://your-domain.com
+      # - COOKIE_SECURE=false
+    volumes:
+      - inventordash_data:/app/src/data
+      - inventordash_uploads:/app/src/public/uploads
+
+volumes:
+  inventordash_data:
+  inventordash_uploads:
+EOF
+```
+
+Run it:
+
+```bash
+export SESSION_SECRET="replace-with-a-random-secret-of-32+chars"
+docker compose up -d
+```
+
+Update it later:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+View logs:
+
+```bash
+docker compose logs -f inventordash
 ```
 
 ### Development Mode
@@ -91,8 +132,8 @@ npm run dev
 
 | URL | Description |
 |-----|-------------|
-| `http://localhost:3000` | Homepage |
-| `http://localhost:3000/admin` | Admin Panel |
+| `http://localhost:3685` | Homepage |
+| `http://localhost:3685/admin` | Admin Panel |
 
 **Default credentials:** `admin` / `admin` (password change required on first login)
 
