@@ -55,6 +55,23 @@ export SESSION_SECRET="replace-with-a-random-secret-of-32+chars"
 docker-compose up -d --build
 ```
 
+### Run Prebuilt Image (GHCR)
+
+```bash
+docker run -d \
+  --name inventordash \
+  --restart unless-stopped \
+  --cap-add NET_RAW \
+  -p 3685:3000 \
+  -e NODE_ENV=production \
+  -e PORT=3000 \
+  -e HOST=0.0.0.0 \
+  -e SESSION_SECRET="replace-with-a-random-secret-of-32+chars" \
+  -v inventordash_data:/app/src/data \
+  -v inventordash_uploads:/app/src/public/uploads \
+  ghcr.io/andrescotes/inventordash:latest
+```
+
 ### Using Docker with Nginx
 
 ```bash
